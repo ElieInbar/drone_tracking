@@ -58,3 +58,13 @@ taille de l'image (donc entre 0 et 1). Avantage : la même étiquette reste vala
 ## Ignored regions (zones ignorées)
 Zones de l'image trop floues ou trop denses pour être annotées objet par objet (une foule lointaine).
 On ne les apprend pas : ce ne sont ni des objets, ni de vrais « fonds ».
+
+## Petits / moyens / grands objets
+Convention de COCO, utilisée partout : petit = aire < 32 × 32 px, moyen = aire < 96 × 96 px, grand sinon.
+*Dans le projet :* 60,5 % des objets de VisDrone sont petits. C'est la principale difficulté du
+jeu de données, et la raison de l'étape 3 (tuiles).
+
+## Déséquilibre des classes
+Quand certaines catégories sont beaucoup plus fréquentes que d'autres. Le modèle voit peu
+d'exemples des catégories rares et les apprend mal.
+*Dans le projet :* 42 % de voitures, mais moins de 1 % de tricycles à auvent.
