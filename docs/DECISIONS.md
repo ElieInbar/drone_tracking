@@ -19,3 +19,10 @@ bus→bus, truck→truck. Les autres sorties COCO (oiseau, chien…) sont jetée
 Limite connue : COCO ne distingue pas « pedestrian » (debout) de « people » (assis, accroupi) ;
 toutes les personnes deviennent « pedestrian ». C'est pourquoi l'expérience 1 compare les modèles
 seulement sur ces 6 catégories.
+
+## D4 — mAP calculée à la manière de COCO, pas d'Ultralytics
+COCO lit la précision à 101 niveaux de rappel et fait la moyenne. Ultralytics intègre la même
+courbe par la méthode des trapèzes, ce qui donne 0,995 au lieu de 1 pour des prédictions parfaites
+(défaut connu). On garde la méthode COCO, plus simple à expliquer et exacte sur les cas faits à la
+main. Conséquence : nos chiffres peuvent s'écarter légèrement de ceux d'Ultralytics (≈ 0,005) ;
+la vérification de la tâche 7 tolère 0,01.

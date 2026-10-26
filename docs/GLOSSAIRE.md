@@ -68,3 +68,31 @@ jeu de données, et la raison de l'étape 3 (tuiles).
 Quand certaines catégories sont beaucoup plus fréquentes que d'autres. Le modèle voit peu
 d'exemples des catégories rares et les apprend mal.
 *Dans le projet :* 42 % de voitures, mais moins de 1 % de tricycles à auvent.
+
+## Vrai positif (TP)
+Une détection qui recouvre un objet réel de la bonne catégorie avec un IoU au moins égal au seuil
+(0,5 en général), et dont l'objet n'a pas déjà été pris par une détection plus sûre.
+Une deuxième boîte sur le même objet est un faux positif (doublon).
+
+## Précision
+Parmi mes détections, quelle part est juste ? précision = vrais positifs ÷ nombre de détections.
+*Exemple :* 10 boîtes dont 8 sur de vrais objets → précision 0,8.
+
+## Rappel (recall)
+Parmi les objets réels, quelle part ai-je trouvée ? rappel = vrais positifs ÷ nombre d'objets réels.
+*Exemple :* 8 objets trouvés sur 40 → rappel 0,2.
+
+## Courbe précision-rappel
+On classe toutes les détections de la plus sûre à la moins sûre et on les ajoute une à une :
+le rappel monte, la précision varie. Chaque seuil de confiance possible est un point de la courbe.
+
+## AP (Average Precision)
+L'aire sous la courbe précision-rappel d'une catégorie : un seul chiffre entre 0 et 1 qui résume
+la qualité du détecteur pour tous les seuils à la fois. Méthode COCO : on lit la précision à
+101 niveaux de rappel (0 ; 0,01 ; … ; 1) et on fait la moyenne.
+
+## mAP@50 et mAP@50-95
+mAP = moyenne des AP de toutes les catégories.
+@50 : une détection compte si son IoU avec l'objet atteint 0,5 (boîte « à peu près » bien placée).
+@50-95 : moyenne sur 10 seuils d'IoU de 0,50 à 0,95 ; récompense les boîtes très bien ajustées.
+Code : `src/dronetrack/eval/det_metrics.py`.
