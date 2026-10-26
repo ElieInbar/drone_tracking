@@ -39,3 +39,22 @@ Seuil bas → on rate moins d'objets mais on a plus de fausses alertes ; seuil h
 ## Faux positif / faux négatif
 Faux positif : une détection là où il n'y a pas d'objet (une ombre prise pour un piéton).
 Faux négatif : un objet réel que le détecteur n'a pas trouvé.
+
+## Annotation (vérité terrain, ground truth)
+Les « bonnes réponses » dessinées à la main par des humains : pour chaque image, la boîte et la
+catégorie de chaque objet. Le modèle apprend en comparant ses prédictions à ces réponses.
+*Dans le projet :* un fichier texte par image dans `data/VisDrone2019-DET-*/annotations/`.
+
+## Format d'annotation VisDrone
+Une ligne par objet : `gauche, haut, largeur, hauteur, score, catégorie, troncature, occlusion`, en pixels.
+Le « score » vaut 0 pour une boîte à ignorer. Catégorie 0 = zone ignorée, 11 = « others ».
+
+## Format YOLO et coordonnées normalisées
+Une ligne par objet : `classe centre_x centre_y largeur hauteur`, chaque valeur divisée par la
+taille de l'image (donc entre 0 et 1). Avantage : la même étiquette reste valable si on redimensionne l'image.
+*Exemple :* une boîte de 50 × 100 px en haut à gauche d'une image de 200 × 100 →
+`3 0.125000 0.500000 0.250000 1.000000`. Code : `src/dronetrack/data/convert.py`.
+
+## Ignored regions (zones ignorées)
+Zones de l'image trop floues ou trop denses pour être annotées objet par objet (une foule lointaine).
+On ne les apprend pas : ce ne sont ni des objets, ni de vrais « fonds ».
