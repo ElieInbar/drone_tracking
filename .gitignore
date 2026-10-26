@@ -1,0 +1,10 @@
+data/
+runs/
+models/
+outputs/
+.venv/
+__pycache__/
+*.pt
+.DS_Store
+.superpowers/
+.pytest_cache/
