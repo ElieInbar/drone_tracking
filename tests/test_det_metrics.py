@@ -1,7 +1,7 @@
 import numpy as np
 import pytest
 
-from dronetrack.eval.det_metrics import average_precision, evaluate_detections
+from dronetrack.eval.det_metrics import PERSON_MERGE, average_precision, evaluate_detections, remap_classes
 from dronetrack.types import Detection
 
 G = {"im": [Detection(0, 0, 10, 10, 1, 0)]}
@@ -55,3 +55,14 @@ def test_prediction_in_other_image_does_not_match():
 def test_average_precision_of_a_step_curve():
     # precision 1 up to recall 0.5, then nothing: half of the area
     assert average_precision(np.array([0.5]), np.array([1.0])) == pytest.approx(51 / 101)
+
+
+def test_remap_classes_merges_people_into_pedestrian():
+    dets = [Detection(0, 0, 1, 1, 0.9, 1), Detection(0, 0, 1, 1, 0.8, 3)]
+    assert [d.cls for d in remap_classes(dets, {1: 0})] == [0, 3]
+
+
+def test_merged_people_ground_truth_matches_pedestrian_prediction():
+    gts = remap_classes([Detection(0, 0, 10, 10, 1, 1)], PERSON_MERGE)  # a sitting person ("people")
+    m = evaluate_detections({"im": [Detection(0, 0, 10, 10, 0.9, 0)]}, {"im": gts}, [0])
+    assert m.map50 == pytest.approx(1.0)

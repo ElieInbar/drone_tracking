@@ -1,7 +1,7 @@
 """Detection quality: AP per class and mAP, computed the COCO way."""
 
 from collections.abc import Mapping, Sequence
-from dataclasses import dataclass
+from dataclasses import dataclass, replace
 
 import numpy as np
 
@@ -10,6 +10,13 @@ from dronetrack.types import Detection
 
 IOU_THRESHOLDS = np.linspace(0.5, 0.95, 10)  # 0.50, 0.55, ..., 0.95
 RECALL_POINTS = np.linspace(0, 1, 101)  # COCO reads precision at recall 0.00, 0.01, ..., 1.00
+# "people" (sitting, crouching) counted as "pedestrian": COCO-trained models only know "person"
+PERSON_MERGE: dict[int, int] = {1: 0}
+
+
+def remap_classes(dets: Sequence[Detection], mapping: Mapping[int, int]) -> list[Detection]:
+    """Return copies of `dets` whose class is renamed by `mapping` (classes not in it are kept)."""
+    return [replace(d, cls=mapping.get(d.cls, d.cls)) for d in dets]
 
 
 @dataclass
