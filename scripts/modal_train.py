@@ -67,7 +67,8 @@ def train_remote(model: str, epochs: int, imgsz: int, batch: int, name: str, fra
         resume=str(last) if resume else None,
     )
     volume.commit()
-    return str(best.relative_to(VOLUME_DIR))
+    # Path inside the volume (Modal resolves /vol to an internal path, so rebuild it rather than relativize)
+    return f"runs/{name}/weights/{best.name}"
 
 
 @app.local_entrypoint()
