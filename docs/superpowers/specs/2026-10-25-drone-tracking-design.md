@@ -40,7 +40,8 @@ un numéro d'identité qu'il garde d'une image à l'autre (détection + suivi mu
 
 - **VisDrone2019-DET** (images annotées, 10 classes : pedestrian, people, bicycle, car, van, truck,
   tricycle, awning-tricycle, bus, motor) → entraînement et évaluation du détecteur.
-- **VisDrone2019-MOT** (vidéos avec identités) → évaluation du suivi.
+- **VisDrone2019-MOT** (vidéos avec identités) → évaluation du suivi. Comme le protocole officiel
+  VisDrone-MOT, le suivi est évalué sur 5 classes : pedestrian, car, van, truck, bus.
 - Conversion des annotations VisDrone vers le format YOLO (centre, largeur, hauteur normalisés).
   Les zones « ignored regions » et la classe « others » sont exclues de l'entraînement.
 - Licence VisDrone : usage non commercial / académique — compatible portfolio public.
