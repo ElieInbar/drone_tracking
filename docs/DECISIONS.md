@@ -26,3 +26,24 @@ courbe par la méthode des trapèzes, ce qui donne 0,995 au lieu de 1 pour des p
 (défaut connu). On garde la méthode COCO, plus simple à expliquer et exacte sur les cas faits à la
 main. Conséquence : nos chiffres peuvent s'écarter légèrement de ceux d'Ultralytics (≈ 0,005) ;
 la vérification de la tâche 7 tolère 0,01.
+
+## D5 — Ré-entraînement sur Modal : 50 epochs, 640 px, batch 16, GPU L4
+Prévu sur Kaggle, fait sur Modal : le compte Modal était déjà prêt, et Modal se pilote depuis le
+terminal (pas de notebook à lancer à la main). Les images brutes et les entraînements sont gardés
+dans un volume Modal : un entraînement coupé peut reprendre depuis `last.pt`.
+50 epochs : la courbe de validation est plate dès l'epoch 33, donc plus d'epochs n'aurait servi à rien
+pour ce modèle. 640 px : la taille standard de YOLO ; les petits objets seront traités par les tuiles
+(étape 3), pas par une image d'entrée plus grande.
+
+## D6 — Vérification de notre mAP contre Ultralytics
+Sur le même modèle, `val()` d'Ultralytics donne mAP@50 = 0,296 et notre script 0,273 (écart 0,024,
+au-delà de la tolérance de 0,01). Recherche de la cause :
+- mêmes prédictions (celles de notre pipeline) notées par la formule d'Ultralytics : 0,270, par la
+  nôtre : 0,273 → les deux formules sont d'accord ;
+- prédictions exportées par `val()` (JSON) notées par notre formule : 0,298, contre 0,296 pour
+  Ultralytics → écart 0,002 : **notre mAP est validée**.
+L'écart vient donc des prédictions : `predict()` et `val()` d'Ultralytics ne produisent pas
+exactement les mêmes boîtes. Causes testées et écartées : interpolation de redimensionnement (+0,002),
+limite max_det 300 vs 317 (0), regroupement rectangulaire des images (0). Question ouverte, à reprendre
+au plan 2 (inférence par tuiles). L'expérience 1 reste équitable : les deux modèles passent par le
+même pipeline.

@@ -18,8 +18,6 @@ from dronetrack.detect.yolo import COCO_TO_VISDRONE, YoloDetector
 from dronetrack.io import iter_frames
 from dronetrack.viz.draw import draw_detections
 
-GIF_WIDTH = 640  # GIFs are downscaled to stay small enough for a README
-
 
 def main() -> None:
     parser = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
@@ -31,6 +29,7 @@ def main() -> None:
     parser.add_argument("--gif", type=Path, help="annotated GIF path")
     parser.add_argument("--max-frames", type=int, default=150)
     parser.add_argument("--fps", type=int, default=10)
+    parser.add_argument("--gif-width", type=int, default=480, help="GIFs are downscaled to stay small enough for a README")
     args = parser.parse_args()
 
     detector = YoloDetector(args.weights, conf=args.conf, class_map=COCO_TO_VISDRONE if args.coco else None)
@@ -48,7 +47,7 @@ def main() -> None:
             writer.write(drawn)
         if args.gif:
             h, w = drawn.shape[:2]
-            small = cv2.resize(drawn, (GIF_WIDTH, round(h * GIF_WIDTH / w)))
+            small = cv2.resize(drawn, (args.gif_width, round(h * args.gif_width / w)))
             gif_frames.append(cv2.cvtColor(small, cv2.COLOR_BGR2RGB))
     n_frames = i + 1
     elapsed = time.perf_counter() - start

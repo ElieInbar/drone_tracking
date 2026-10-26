@@ -96,3 +96,31 @@ mAP = moyenne des AP de toutes les catégories.
 @50 : une détection compte si son IoU avec l'objet atteint 0,5 (boîte « à peu près » bien placée).
 @50-95 : moyenne sur 10 seuils d'IoU de 0,50 à 0,95 ; récompense les boîtes très bien ajustées.
 Code : `src/dronetrack/eval/det_metrics.py`.
+
+## Fine-tuning (ré-entraînement)
+Reprendre un modèle pré-entraîné et continuer son apprentissage sur nos propres données, pour le
+spécialiser. Bien plus rapide et efficace que de partir de zéro.
+*Dans le projet :* YOLO26n (COCO) ré-entraîné 50 epochs sur VisDrone → mAP@50 de 0,14 à 0,34.
+
+## Epoch et batch
+Une epoch = un passage complet sur toutes les images d'entraînement (6471 ici).
+Un batch = le petit paquet d'images traitées ensemble avant chaque mise à jour des poids (16 ici).
+
+## Perte (loss)
+Le nombre que l'entraînement cherche à faire baisser : à quel point les prédictions sont loin des
+réponses. YOLO26 en suit trois : `box_loss` (placement des boîtes), `cls_loss` (catégorie),
+`l1_loss` (écart des bords en coordonnées).
+
+## Jeu de validation
+Images mises de côté, jamais utilisées pour apprendre, qui servent à mesurer honnêtement le modèle.
+On juge un modèle sur la validation, jamais sur la perte d'entraînement.
+
+## Sur-apprentissage (overfitting)
+Le modèle apprend les images d'entraînement par cœur au lieu de règles générales : la perte
+d'entraînement baisse mais les résultats de validation stagnent ou se dégradent.
+
+## Mosaïque (augmentation)
+Pendant l'entraînement, Ultralytics colle 4 images en une pour créer de la variété. Arrêtée pour
+les 10 dernières epochs. *Dans le projet :* la perte d'entraînement chute à l'epoch 40 quand la
+mosaïque s'arrête, sans que la mAP de validation bouge : les images sont plus faciles, le modèle
+n'est pas meilleur.
