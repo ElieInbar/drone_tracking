@@ -11,3 +11,11 @@ Les deux coins rendent le calcul de l'IoU direct (min/max des coins).
 Dernière génération de YOLO d'Ultralytics (octobre 2026). La version nano est la plus petite :
 elle s'entraîne vite sur le GPU gratuit de Kaggle et tourne sur un Mac M1. Si la précision est trop
 faible, on passera à la version small.
+
+## D3 — Correspondance COCO → VisDrone pour le modèle « avant »
+Le modèle pré-entraîné parle COCO (person, car…), VisDrone a ses propres catégories. On traduit
+les 6 catégories communes : person→pedestrian, bicycle→bicycle, car→car, motorcycle→motor,
+bus→bus, truck→truck. Les autres sorties COCO (oiseau, chien…) sont jetées.
+Limite connue : COCO ne distingue pas « pedestrian » (debout) de « people » (assis, accroupi) ;
+toutes les personnes deviennent « pedestrian ». C'est pourquoi l'expérience 1 compare les modèles
+seulement sur ces 6 catégories.
