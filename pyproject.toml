@@ -24,3 +24,5 @@ packages = ["src/dronetrack"]
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]
+markers = ["slow: needs model weights or network"]
+addopts = "-m 'not slow'"
