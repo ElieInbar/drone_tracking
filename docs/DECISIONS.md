@@ -44,6 +44,16 @@ au-delà de la tolérance de 0,01). Recherche de la cause :
   Ultralytics → écart 0,002 : **notre mAP est validée**.
 L'écart vient donc des prédictions : `predict()` et `val()` d'Ultralytics ne produisent pas
 exactement les mêmes boîtes. Causes testées et écartées : interpolation de redimensionnement (+0,002),
-limite max_det 300 vs 317 (0), regroupement rectangulaire des images (0). Question ouverte, à reprendre
-au plan 2 (inférence par tuiles). L'expérience 1 reste équitable : les deux modèles passent par le
-même pipeline.
+limite max_det 300 vs 317 (0), regroupement rectangulaire des images (0).
+
+**Cause principale trouvée (plan 2, tâche 1) : le « multi-label » de la validation.** `val()` appelle
+la suppression des doublons avec `multi_label=True` : une même boîte peut sortir plusieurs fois, avec
+plusieurs catégories (26 % des boîtes de `val()` sont de telles copies). Une boîte hésitante entre
+voiture et camionnette compte alors comme candidate dans les deux catégories, ce qui augmente la mAP.
+`predict()` garde une seule catégorie par boîte. En ne gardant que la catégorie la plus sûre de chaque
+boîte de `val()`, sa mAP@50 passe de 0,298 à 0,284, à 0,011 de notre 0,273 ; le reste vient de détails
+de prétraitement (interpolation, letterbox).
+**Décision : on garde une catégorie par boîte.** Le multi-label est une astuce d'évaluation : un
+système réel (et notre tracker) attribue une seule catégorie à chaque objet. Nos chiffres sont donc un
+peu plus bas que ceux qu'affiche Ultralytics, mais ils mesurent ce que le système fait vraiment.
+La première ligne de l'expérience 2 (image entière, 10 catégories) est mAP@50 = 0,273.
