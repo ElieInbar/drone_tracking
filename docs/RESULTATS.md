@@ -82,5 +82,39 @@ Lecture :
 - Les mesures de vitesse varient beaucoup d'une exécution à l'autre (MacBook Air sans ventilateur, qui
   ralentit en chauffant) : seules les mesures faites l'une après l'autre dans les mêmes conditions sont comparées.
 
-## Expérience 3 — Notre tracker contre ByteTrack officiel
-*(étape 4)*
+## Expérience 3 — Notre tracker contre ByteTrack (Ultralytics)
+Validation VisDrone-MOT : 7 vidéos, 2 846 images, 5 catégories évaluées (pedestrian, car, van, truck,
+bus), zones ignorées appliquées. Détecteur YOLO26n ré-entraîné, image entière, seuil 0,1 ; détections
+calculées une fois et mises en cache : **les deux trackers reçoivent exactement les mêmes boîtes**.
+Réglages identiques (bytetrack.yaml d'Ultralytics).
+
+Vérification de nos métriques contre TrackEval (outil de référence des articles), catégorie car, 3 vidéos,
+2 trackers : IDF1 identique, MOTA à moins de 0,0005 (départage des égalités).
+
+| Tracker | MOTA | IDF1 | Changements de numéro | Fausses alertes | Ratés | Vitesse (tracker seul) |
+|---|---|---|---|---|---|---|
+| Notre tracker, première version (sans fuse_score) | 0,070 | 0,403 | 1 385 | 32 485 | 33 718 | — |
+| Ultralytics ByteTrack sans fuse_score | 0,044 | 0,383 | 1 944 | 33 225 | 34 333 | — |
+| Ultralytics ByteTrack (réglage par défaut) | 0,177 | 0,403 | 1 180 | 21 010 | 37 651 | ≈ 270 images/s |
+| **Notre tracker (avec fuse_score)** | **0,193** | **0,416** | **909** | **20 543** | **37 244** | **≈ 350 images/s** |
+
+Lecture :
+- La première version perdait nettement en MOTA (0,070 contre 0,177) à cause de 11 000 fausses alertes de
+  plus. Tout l'écart venait d'un seul réglage d'Ultralytics, `fuse_score` : avant de relier, il multiplie
+  le recouvrement par la confiance de la détection, donc une boîte moyennement sûre doit beaucoup mieux
+  recouvrir la trajectoire. Sans ce réglage, Ultralytics tombe à 0,044, sous notre première version.
+- Avec ce réglage ajouté, **notre tracker dépasse ByteTrack d'Ultralytics sur les 3 notes** : MOTA 0,193
+  contre 0,177, IDF1 0,416 contre 0,403, et **23 % de changements de numéro en moins** (909 contre 1 180).
+  Il gagne en MOTA sur 6 vidéos sur 7. Différences de conception qui peuvent l'expliquer (non isolées) :
+  association par catégorie (une voiture n'est jamais reliée à un piéton), numéro donné seulement à la
+  confirmation, filtre de Kalman sur largeur et hauteur directement.
+- **Les erreurs viennent surtout du détecteur** : 57 787 ratés et fausses alertes contre 909 changements
+  de numéro. Exemple, vidéo uav0000182 (MOTA −0,15) : 1 970 camionnettes réelles mais 924 boîtes
+  « van » prédites, et 8 697 boîtes « car » pour 5 848 voitures. Une camionnette prise pour une voiture
+  compte deux fois (fausse alerte « car » + raté « van »). Des voitures annotées sous les arbres, invisibles,
+  sont aussi comptées comme ratées.
+- **Les tuiles dégradent le suivi** : avec la détection par tuiles, MOTA −0,18 et IDF1 0,34 (contre 0,19 et
+  0,42). Elles produisent 2,6 fois plus de fausses alertes au seuil 0,1 (53 598 contre 20 543). Les tuiles
+  améliorent la mAP (qui juge le classement des boîtes pour tous les seuils) mais un tracker travaille à un
+  seuil fixe, où elles ajoutent surtout du bruit. Ré-régler les seuils du tracker pour les tuiles reste à tester.
+- Le tracker seul tourne à plusieurs centaines d'images par seconde : le coût du système est dans le détecteur.

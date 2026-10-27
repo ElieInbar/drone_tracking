@@ -36,6 +36,23 @@ A finding worth noting: **SAHI's default box merging made things worse than no t
 (mAP@50 0.248). An ablation isolates the cause: merging, not the IoS overlap metric. In VisDrone's
 dense parking lots and crowds it fuses neighbouring objects into one box. Plain NMS is the default here.
 
+**Experiment 3: our tracker vs ByteTrack.** Homemade ByteTrack-style tracker (Kalman filter, Hungarian
+matching, two-pass association) against Ultralytics' ByteTrack, **fed the exact same cached detections**,
+same settings. VisDrone-MOT val: 7 videos, 2,846 frames, 5 classes.
+
+![tracking](docs/media/tracking.gif)
+
+| | MOTA | IDF1 | ID switches | Tracker speed (M1) |
+|---|---|---|---|---|
+| Ultralytics ByteTrack | 0.177 | 0.403 | 1,180 | ~270 fps |
+| **Ours** | **0.193** | **0.416** | **909** (−23%) | ~350 fps |
+
+The first version lost (MOTA 0.070): the whole gap came from one Ultralytics setting, `fuse_score`
+(overlap weighted by detection confidence); without it Ultralytics scores 0.044. Our MOTA / IDF1 code is
+checked against [TrackEval](https://github.com/JonathonLuiten/TrackEval): identical IDF1, MOTA within 0.0005.
+Most remaining errors come from the detector (e.g. vans labelled as cars), not from the tracker.
+Tiling, which helps detection mAP, *hurts* tracking (MOTA −0.18): at a fixed threshold it mostly adds false alarms.
+
 **The mAP is computed by our own code** (COCO method, [det_metrics.py](src/dronetrack/eval/det_metrics.py)),
 unit-tested on hand-checkable cases and cross-checked against Ultralytics: on the same predictions the two
 agree within 0.002.
@@ -46,8 +63,8 @@ agree within 0.002.
 - [x] Step 1: VisDrone → YOLO conversion, dataset statistics
 - [x] Step 2: fine-tuning on a cloud GPU, homemade mAP, **experiment 1**
 - [x] Step 3: homemade tiling for small objects: accuracy vs speed (**experiment 2**)
-- [ ] Step 4: homemade multi-object tracker (Kalman filter + Hungarian matching, ByteTrack-style),
-      MOTA / IDF1, compared with official ByteTrack (**experiment 3**)
+- [x] Step 4: homemade multi-object tracker (Kalman filter + Hungarian matching, ByteTrack-style),
+      MOTA / IDF1, compared with Ultralytics' ByteTrack (**experiment 3**)
 - [ ] Step 5: online demo
 - [ ] Next: counter-drone variant (detect and track drones in the sky), ONNX / C++ speed benchmark
 
@@ -66,7 +83,7 @@ video → frames → detect → list[Detection] → track → list[Track] → dr
 |---|---|---|
 | Detector | Ultralytics YOLO26n, fine-tuned | Rewriting YOLO adds nothing |
 | Small-object tiling | Homemade (SAHI-like), with NMS or SAHI-style merging | To understand and measure the trade-off |
-| Tracker | Homemade, ByteTrack-style | Core algorithmic part |
+| Tracker | Homemade, ByteTrack-style (Kalman + Hungarian, two passes) | Core algorithmic part |
 | Metrics | Homemade mAP, MOTA, IDF1 | Each checked against the official tool |
 
 Every technical choice and its reason: [docs/DECISIONS.md](docs/DECISIONS.md).
@@ -83,6 +100,8 @@ uv run scripts/download_visdrone.py det-val                # 82 MB
 uv run scripts/evaluate_detector.py --weights yolo26n.pt --coco --classes 0 2 3 5 8 9 --merge-person
 uv run scripts/run_detect.py --source path/to/video.mp4 --weights yolo26n.pt --coco --gif out.gif
 uv run scripts/run_detect.py --source path/to/video.mp4 --weights models/visdrone_y26n.pt --tiles --gif out.gif
+uv run scripts/run_track.py --source path/to/frames_or_video --weights models/visdrone_y26n.pt --gif track.gif
+uv run scripts/evaluate_tracker.py --weights models/visdrone_y26n.pt --check-reference
 ```
 
 Fine-tuning on Modal: `modal run --detach scripts/modal_train.py` (see the script's header).

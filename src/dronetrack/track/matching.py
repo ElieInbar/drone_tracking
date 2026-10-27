@@ -14,18 +14,23 @@ def associate(
     det_boxes: np.ndarray,
     det_cls: np.ndarray,
     min_iou: float,
+    det_weight: np.ndarray | None = None,
 ) -> tuple[list[tuple[int, int]], list[int], list[int]]:
-    """Hungarian matching of tracks (N, 4) to detections (M, 4) on cost = 1 - IoU.
+    """Hungarian matching of tracks (N, 4) to detections (M, 4) on cost = 1 - similarity.
 
-    Pairs of different classes, or overlapping less than `min_iou`, are forbidden.
+    Similarity = IoU, multiplied by `det_weight` (the detection confidence, ByteTrack's "fuse score")
+    when given: a shaky detection must then overlap the track much better to be accepted.
+    Pairs of different classes, or with a similarity below `min_iou`, are forbidden.
     Returns (matched (track, detection) index pairs, unmatched track indices, unmatched detection indices).
     """
     n_tracks, n_dets = len(track_boxes), len(det_boxes)
     if n_tracks == 0 or n_dets == 0:
         return [], list(range(n_tracks)), list(range(n_dets))
-    iou = iou_matrix(track_boxes, det_boxes)
-    allowed = (iou >= min_iou) & (track_cls[:, None] == det_cls[None, :])
-    cost = np.where(allowed, 1.0 - iou, FORBIDDEN)
+    sim = iou_matrix(track_boxes, det_boxes)
+    if det_weight is not None:
+        sim = sim * det_weight[None, :]
+    allowed = (sim >= min_iou) & (track_cls[:, None] == det_cls[None, :])
+    cost = np.where(allowed, 1.0 - sim, FORBIDDEN)
     # Minimises the total cost over all pairs at once, unlike "each track takes its nearest box".
     rows, cols = linear_sum_assignment(cost)
     matches = [(int(r), int(c)) for r, c in zip(rows, cols) if allowed[r, c]]

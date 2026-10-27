@@ -69,3 +69,15 @@ Coût : environ 10 fois plus lent (≈ 60 → 6,4 images/s sur le Mac M1). À ut
 objets comptent plus que la vitesse ; pour du temps réel embarqué, l'image entière reste l'option rapide.
 Hors périmètre, à tester si besoin (plan 2b) : ré-entraîner sur des tuiles, car le modèle a appris
 sur des images réduites et voit les objets plus gros dans une tuile qu'à l'entraînement.
+
+## D8 — Tracker : réglages d'Ultralytics, association par catégorie, fuse_score activé
+Réglages copiés du `bytetrack.yaml` d'Ultralytics (seuils 0,25 / 0,1, nouvelle trajectoire 0,25,
+mémoire 30 images, passes à IoU ≥ 0,2 et 0,5, confirmation à IoU ≥ 0,3) pour comparer les algorithmes,
+pas les réglages. Le plan prévoyait de ne pas pondérer le recouvrement par le score (« fuse_score ») ;
+l'expérience 3 a montré que c'était tout l'écart avec Ultralytics (MOTA 0,070 contre 0,177). Il est
+activé par défaut (passe 1 et confirmation, pas la passe 2, comme Ultralytics) et reste désactivable.
+Différences gardées : association seulement entre objets de même catégorie ; numéro donné à la
+confirmation (les fausses alertes d'une image ne consomment pas de numéro).
+Vérification des métriques : TrackEval, lancé sur nos sorties ; il utilise des alias numpy supprimés
+(`np.int`, `np.float`) qu'on recrée seulement pendant la vérification.
+Le détecteur pour le suivi reste l'image entière : les tuiles dégradent le suivi au seuil 0,1 (voir RESULTATS).

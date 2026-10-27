@@ -66,3 +66,11 @@ def test_one_frame_false_alarm_never_gets_an_id():
 
 def test_empty_frames_do_not_crash():
     assert run([[], [], []]) == [[], [], []]
+
+
+def test_fuse_score_rejects_a_shaky_match_of_a_mid_score_detection():
+    # A car at x=0; then a mid-score box (0.3) overlapping it only partly (IoU 1/3).
+    frames = [[car(0)], [car(0)], [Detection(10, 0, 30, 20, 0.3, 3)]]
+    fused = run(frames)  # IoU x score = 0.1 < 0.2: not the same car, and a 1-frame box gets no number
+    plain = run(frames, fuse_score=False)  # IoU 0.33 >= 0.2: accepted as the same car
+    assert fused[2] == [] and len(plain[2]) == 1

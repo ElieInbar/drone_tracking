@@ -38,3 +38,10 @@ def test_more_detections_than_tracks():
 def test_empty_inputs():
     assert associate(np.zeros((0, 4)), np.zeros(0), B, np.zeros(3), 0.2) == ([], [], [0, 1, 2])
     assert associate(B, np.zeros(3), np.zeros((0, 4)), np.zeros(0), 0.2) == ([], [0, 1, 2], [])
+
+
+def test_det_weight_scales_the_overlap():
+    # IoU 0.5 with a detection of confidence 0.3: plain IoU accepts it, IoU x score (0.15) does not.
+    track, det = np.array([[0, 0, 10, 10]], float), np.array([[0, 0, 10, 20]], float)
+    assert associate(track, np.zeros(1), det, np.zeros(1), 0.2)[0] == [(0, 0)]
+    assert associate(track, np.zeros(1), det, np.zeros(1), 0.2, det_weight=np.array([0.3]))[0] == []
