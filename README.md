@@ -4,6 +4,9 @@ Detect and track vehicles and pedestrians in drone footage: every object gets an
 keeps from frame to frame. Built on the [VisDrone](https://github.com/VisDrone/VisDrone-Dataset)
 dataset, where 60% of the objects are smaller than 32×32 pixels.
 
+[![Open in Spaces](https://huggingface.co/datasets/huggingface/badges/resolve/main/open-in-hf-spaces-md.svg)](https://huggingface.co/spaces/elieinbar/drone-tracking)
+**[Live demo](https://huggingface.co/spaces/elieinbar/drone-tracking)**: upload a drone video, get it back with tracked IDs.
+
 | Off-the-shelf YOLO26n (COCO) | Fine-tuned on VisDrone | Fine-tuned + tiling |
 |---|---|---|
 | ![before](docs/media/before_coco.gif) | ![after](docs/media/after_finetuned.gif) | ![tiled](docs/media/tiled.gif) |
@@ -65,7 +68,7 @@ agree within 0.002.
 - [x] Step 3: homemade tiling for small objects: accuracy vs speed (**experiment 2**)
 - [x] Step 4: homemade multi-object tracker (Kalman filter + Hungarian matching, ByteTrack-style),
       MOTA / IDF1, compared with Ultralytics' ByteTrack (**experiment 3**)
-- [ ] Step 5: online demo
+- [x] Step 5: [online demo](https://huggingface.co/spaces/elieinbar/drone-tracking) (Gradio on a free CPU Space)
 - [ ] Next: counter-drone variant (detect and track drones in the sky), ONNX / C++ speed benchmark
 
 ## Design
@@ -96,6 +99,8 @@ Requires [uv](https://docs.astral.sh/uv/).
 ```bash
 uv sync
 uv run pytest                                              # unit tests
+curl -L --create-dirs -o models/visdrone_y26n.pt https://github.com/ElieInbar/drone_tracking/releases/download/v1.0/visdrone_y26n.pt
+DRONETRACK_WEIGHTS=models/visdrone_y26n.pt uv run --group demo python space/app.py   # the demo, on localhost:7860
 uv run scripts/download_visdrone.py det-val                # 82 MB
 uv run scripts/evaluate_detector.py --weights yolo26n.pt --coco --classes 0 2 3 5 8 9 --merge-person
 uv run scripts/run_detect.py --source path/to/video.mp4 --weights yolo26n.pt --coco --gif out.gif

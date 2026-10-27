@@ -118,3 +118,10 @@ Lecture :
   améliorent la mAP (qui juge le classement des boîtes pour tous les seuils) mais un tracker travaille à un
   seuil fixe, où elles ajoutent surtout du bruit. Ré-régler les seuils du tracker pour les tuiles reste à tester.
 - Le tracker seul tourne à plusieurs centaines d'images par seconde : le coût du système est dans le détecteur.
+
+## Démo en ligne (étape 5)
+
+https://huggingface.co/spaces/elieinbar/drone-tracking : détecteur ré-entraîné en image entière + notre
+tracker, sur les 300 premières images de la vidéo envoyée. Clip d'exemple (100 images 1280 × 720,
+séquence `uav0000086_00000_v`) : 3 s sur le GPU prêté par ZeroGPU, 7 s sur 2 cœurs CPU du Mac M1
+(≈ 14 images/s), 71 identités suivies. Choix et contraintes : DECISIONS D9.
