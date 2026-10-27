@@ -209,3 +209,18 @@ mémoire 30 images, au cas où l'objet réapparaît ; après, elle est oubliée.
 ## Changement d'identité (ID switch)
 Quand un même objet réel change de numéro en cours de vidéo (après une occultation, un croisement,
 un mouvement brusque du drone). C'est l'erreur typique d'un tracker.
+
+## MOTA (Multiple Object Tracking Accuracy) et CLEAR MOT
+Note globale du suivi : MOTA = 1 − (objets ratés + fausses alertes + changements de numéro) ÷ objets réels.
+1 = parfait ; peut devenir négatif si on fait plus d'erreurs qu'il n'y a d'objets. Calcul image par
+image (protocole CLEAR MOT) : on garde d'abord les associations de l'image précédente encore valables,
+puis on associe le reste par l'algorithme hongrois (IoU ≥ 0,5).
+*Limite :* MOTA est dominée par la détection (ratés et fausses alertes) ; un changement de numéro
+ne compte qu'une fois, même si l'objet garde ensuite le mauvais numéro toute la vidéo.
+
+## IDF1
+Part des objets qui portent le bon numéro sur toute la vidéo. On associe une fois pour toutes
+chaque objet réel à au plus un numéro prédit (celui avec lequel il partage le plus d'images), puis
+IDF1 = 2 × (images où l'objet a ce numéro) ÷ (objets réels + prédictions). Contrairement à MOTA, un
+objet qui change de numéro en milieu de vidéo perd la moitié de sa note.
+Code : `src/dronetrack/eval/mot_metrics.py`.
