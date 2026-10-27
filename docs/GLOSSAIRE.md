@@ -183,3 +183,13 @@ L'**état** : ce que le filtre croit (position, taille, vitesses). L'**incertitu
 à quel point il en est sûr ; elle grandit à chaque prédiction et diminue à chaque mesure.
 Le **gain** K : la part de la mesure qu'on accepte (proche de 1 si la prédiction est très
 incertaine, proche de 0 si le détecteur l'est).
+
+## Problème d'affectation et algorithme hongrois
+Relier deux listes (trajectoires et détections) une à une, de façon à minimiser le coût total
+(ici coût = 1 − IoU entre la boîte prédite et la boîte détectée). L'algorithme hongrois trouve la
+meilleure répartition pour tous à la fois, là où « chacun prend la plus proche » peut laisser
+quelqu'un sans rien.
+*Exemple (test `test_hungarian_beats_greedy`) :* la trajectoire 0 préfère la détection 0 (IoU 0,54),
+mais si elle la prend, la trajectoire 1 n'a plus rien d'utilisable. Le hongrois donne la détection 1
+à la trajectoire 0 (IoU 0,43) et la détection 0 à la trajectoire 1 (IoU 0,54) : deux associations au lieu d'une.
+Code : `src/dronetrack/track/matching.py` (avec `scipy.optimize.linear_sum_assignment`).
