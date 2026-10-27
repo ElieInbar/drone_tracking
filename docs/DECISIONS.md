@@ -81,3 +81,12 @@ confirmation (les fausses alertes d'une image ne consomment pas de numéro).
 Vérification des métriques : TrackEval, lancé sur nos sorties ; il utilise des alias numpy supprimés
 (`np.int`, `np.float`) qu'on recrée seulement pendant la vérification.
 Le détecteur pour le suivi reste l'image entière : les tuiles dégradent le suivi au seuil 0,1 (voir RESULTATS).
+
+## D9 — Démo en ligne : Hugging Face Space gratuit (CPU), 300 images au plus, image entière
+Matériel gratuit « CPU basic » (2 cœurs, pas de GPU) plutôt qu'un GPU payant : YOLO26n est assez petit
+pour l'inférence sur CPU (≈ 14 images/s sur 2 cœurs du M1). Limite de 300 images, réduites à 1280 px de
+large, pour qu'un visiteur attende environ une minute. Réglages de l'expérience 3 (image entière, seuil
+0,1, notre tracker) ; pas de tuiles, 10 fois plus lentes et moins bonnes pour le suivi (D8).
+Sortie en H.264 (seul format que lisent tous les navigateurs). Le Space ne contient que la page
+(`space/`) : il installe `dronetrack` depuis GitHub au tag `v1.0` et télécharge les poids depuis la
+release `v1.0`, pour qu'il n'existe qu'une version du code et des poids.
