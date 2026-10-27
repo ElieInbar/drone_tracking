@@ -158,3 +158,14 @@ détection posée dessus ne compte ni comme bonne réponse ni comme fausse alert
 taille qui ne recouvre rien est aussi ignorée.
 *Dans le projet :* permet de mesurer le gain des tuiles sur les petits objets sans qu'il soit noyé
 dans la moyenne. Code : `area_range` dans `src/dronetrack/eval/det_metrics.py`.
+
+## Suivi multi-objets (MOT, Multi-Object Tracking)
+Suivre plusieurs objets dans une vidéo en donnant à chacun un numéro (identité) qu'il garde d'une
+image à l'autre. La détection dit « il y a une voiture ici » ; le suivi dit « c'est la voiture n° 7 ».
+*Dans le projet :* étape 4, évaluée sur les 7 vidéos de validation VisDrone-MOT (2 846 images).
+
+## Trajectoire (track) et identité
+La suite des positions d'un même objet au fil des images, avec son numéro. Dans les annotations
+VisDrone-MOT, chaque ligne donne l'image, le numéro de l'objet et sa boîte.
+*Dans le projet :* l'objet `Track` = une `Detection` + `track_id`. Code de lecture :
+`parse_mot_annotation` dans `src/dronetrack/data/visdrone.py`.
