@@ -1,7 +1,7 @@
 import numpy as np
 import pytest
 
-from dronetrack.geometry import boxes_to_array, iou_matrix
+from dronetrack.geometry import boxes_to_array, ios_matrix, iou_matrix
 from dronetrack.types import Detection
 
 
@@ -42,3 +42,15 @@ def test_boxes_to_array():
 
 def test_boxes_to_array_empty():
     assert boxes_to_array([]).shape == (0, 4)
+
+
+def test_ios_of_box_inside_another_is_one():
+    a = np.array([[0, 0, 10, 10]], float)
+    b = np.array([[0, 0, 4, 10]], float)
+    assert ios_matrix(a, b)[0, 0] == pytest.approx(1.0)
+    assert iou_matrix(a, b)[0, 0] == pytest.approx(0.4)
+
+
+def test_ios_disjoint_and_empty():
+    assert ios_matrix(np.array([[0, 0, 1, 1]], float), np.array([[5, 5, 6, 6]], float))[0, 0] == 0.0
+    assert ios_matrix(np.zeros((0, 4)), np.zeros((2, 4))).shape == (0, 2)

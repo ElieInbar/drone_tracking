@@ -135,3 +135,18 @@ Code : `src/dronetrack/detect/tiling.py`.
 Les tuiles voisines se recouvrent (20 % ici) pour qu'un objet coupé par le bord d'une tuile
 apparaisse entier dans la tuile d'à côté. Le pas est la distance entre deux tuiles :
 640 × (1 − 0,2) = 512 px, donc 128 px partagés. Tout objet de moins de 128 px est vu entier au moins une fois.
+
+## NMS (Non-Maximum Suppression)
+Supprimer les doublons : quand plusieurs boîtes de la même catégorie désignent le même objet, on
+garde la plus sûre et on jette celles qui la recouvrent trop (seuil d'IoU ou d'IoS). « Non-maximum » :
+on supprime tout ce qui n'est pas le maximum local.
+*Dans le projet :* sert à recoller les détections des tuiles. Code : `src/dronetrack/detect/merge.py`.
+
+## NMM (Non-Maximum Merging) ou fusion de boîtes
+Variante utilisée par SAHI : au lieu de jeter les doublons, la boîte gardée s'agrandit pour les
+couvrir tous. Deux moitiés d'un camion coupé par une tuile redonnent le camion entier.
+
+## IoS (Intersection over Smaller)
+Surface commune ÷ surface de la plus petite des deux boîtes. Un morceau d'objet situé à l'intérieur
+de la boîte entière a une IoS de 1, alors que son IoU peut être faible.
+*Exemple :* boîte entière 40 × 20, morceau 12 × 20 au bord : IoU = 240 / 800 = 0,3 mais IoS = 240 / 240 = 1.
