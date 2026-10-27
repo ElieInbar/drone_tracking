@@ -11,10 +11,14 @@ dependencies = [
     "imageio",
     "gdown",
     "scipy>=1.17.1",
+    "lap>=0.5.12",
 ]
 
 [dependency-groups]
-dev = ["pytest"]
+dev = [
+    "pytest",
+    "trackeval",
+]
 
 [build-system]
 requires = ["hatchling"]
@@ -27,3 +31,6 @@ packages = ["src/dronetrack"]
 testpaths = ["tests"]
 markers = ["slow: needs model weights or network"]
 addopts = "-m 'not slow'"
+
+[tool.uv.sources]
+trackeval = { git = "https://github.com/JonathonLuiten/TrackEval" }

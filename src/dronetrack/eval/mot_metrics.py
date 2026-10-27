@@ -21,6 +21,7 @@ class MotMetrics:
     fp: int  # false alarms
     fn: int  # misses
     n_gt: int  # ground-truth boxes (sum over frames)
+    n_pred: int  # predicted boxes that were scored (not dropped in ignored regions)
     idtp: int  # boxes with the right identity (IDF1 numerator / 2)
 
 
@@ -102,4 +103,4 @@ def evaluate_tracking(
         fn, fp, idsw, n_gt, n_pred, idtp = fn + c_fn, fp + c_fp, idsw + c_idsw, n_gt + c_gt, n_pred + c_pred, idtp + c_idtp
     mota = 1 - (fn + fp + idsw) / n_gt if n_gt else 0.0
     idf1 = 2 * idtp / (n_gt + n_pred) if n_gt + n_pred else 0.0
-    return MotMetrics(mota=mota, idf1=idf1, idsw=idsw, fp=fp, fn=fn, n_gt=n_gt, idtp=idtp)
+    return MotMetrics(mota=mota, idf1=idf1, idsw=idsw, fp=fp, fn=fn, n_gt=n_gt, n_pred=n_pred, idtp=idtp)

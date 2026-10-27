@@ -15,30 +15,16 @@ from pathlib import Path
 from dronetrack.data.visdrone import CLASS_NAMES
 from dronetrack.detect.factory import add_detector_args, build_detector
 from dronetrack.io import iter_frames
-from dronetrack.track.byte_tracker import ByteTracker
 from dronetrack.track.cache import detect_sequence
+from dronetrack.track.factory import TRACK_CONF, TRACKERS, cache_path, make_tracker
 from dronetrack.viz.draw import draw_tracks
 from dronetrack.viz.video import AnnotatedVideo
-
-TRACK_CONF = 0.1  # the tracker needs low-score boxes for its second pass
-
-
-def cache_path(cache_dir: Path, source: Path, args: argparse.Namespace) -> Path:
-    variant = Path(args.weights).stem + ("_tiles" if args.tiles else "")
-    return cache_dir / f"{Path(source).stem}_{variant}.json"
-
-
-def make_tracker(name: str):
-    if name == "ours":
-        return ByteTracker()
-    raise ValueError(f"unknown tracker {name!r}")
-
 
 def main() -> None:
     parser = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
     parser.add_argument("--source", type=Path, required=True)
     add_detector_args(parser)
-    parser.add_argument("--tracker", choices=["ours"], default="ours")
+    parser.add_argument("--tracker", choices=TRACKERS, default="ours")
     parser.add_argument("--cache-dir", type=Path, default=Path("outputs/dets"))
     parser.add_argument("--out", type=Path, help="annotated MP4 path")
     parser.add_argument("--gif", type=Path, help="annotated GIF path")
