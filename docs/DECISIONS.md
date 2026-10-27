@@ -92,5 +92,5 @@ préinstallé par ZeroGPU, et la version de Gradio est fixée par `sdk_version` 
 Limite de 300 images, réduites à 1280 px de large, pour que chaque visiteur consomme peu de quota.
 Réglages de l'expérience 3 (image entière, seuil 0,1, notre tracker) ; pas de tuiles, 10 fois plus
 lentes et moins bonnes pour le suivi (D8). Sortie en H.264 (seul format que lisent tous les navigateurs).
-Le Space ne contient que la page (`space/`) : il installe `dronetrack` depuis GitHub au tag `v1.1`
+Le Space ne contient que la page (`space/`) : il installe `dronetrack` depuis GitHub au tag `v1.2`
 et télécharge les poids depuis la release `v1.0`, pour qu'il n'existe qu'une version du code et des poids.

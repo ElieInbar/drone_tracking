@@ -1,7 +1,7 @@
-data/
-runs/
-models/
-outputs/
+/data/
+/runs/
+/models/
+/outputs/
 .venv/
 __pycache__/
 *.pt

@@ -1,2 +1,2 @@
 torchvision
-dronetrack @ git+https://github.com/ElieInbar/drone_tracking@v1.1
+dronetrack @ git+https://github.com/ElieInbar/drone_tracking@v1.2
