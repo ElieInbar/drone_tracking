@@ -1,0 +1,5 @@
+--extra-index-url https://download.pytorch.org/whl/cpu
+torch
+torchvision
+dronetrack @ git+https://github.com/ElieInbar/drone_tracking@v1.0
+gradio>=5,<6
