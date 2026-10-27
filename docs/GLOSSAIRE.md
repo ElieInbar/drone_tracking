@@ -150,3 +150,11 @@ couvrir tous. Deux moitiés d'un camion coupé par une tuile redonnent le camion
 Surface commune ÷ surface de la plus petite des deux boîtes. Un morceau d'objet situé à l'intérieur
 de la boîte entière a une IoS de 1, alors que son IoU peut être faible.
 *Exemple :* boîte entière 40 × 20, morceau 12 × 20 au bord : IoU = 240 / 800 = 0,3 mais IoS = 240 / 240 = 1.
+
+## AP small / medium / large (mAP par taille)
+La mAP calculée seulement sur les objets d'une taille donnée (convention COCO : < 32², < 96², au-delà).
+Les objets réels d'une autre taille sont « ignorés » : ils ne comptent pas comme manqués, et une
+détection posée dessus ne compte ni comme bonne réponse ni comme fausse alerte. Une détection hors
+taille qui ne recouvre rien est aussi ignorée.
+*Dans le projet :* permet de mesurer le gain des tuiles sur les petits objets sans qu'il soit noyé
+dans la moyenne. Code : `area_range` dans `src/dronetrack/eval/det_metrics.py`.

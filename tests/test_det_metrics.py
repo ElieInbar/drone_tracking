@@ -1,7 +1,13 @@
 import numpy as np
 import pytest
 
-from dronetrack.eval.det_metrics import PERSON_MERGE, average_precision, evaluate_detections, remap_classes
+from dronetrack.eval.det_metrics import (
+    PERSON_MERGE,
+    SIZE_RANGES,
+    average_precision,
+    evaluate_detections,
+    remap_classes,
+)
 from dronetrack.types import Detection
 
 G = {"im": [Detection(0, 0, 10, 10, 1, 0)]}
@@ -66,3 +72,40 @@ def test_merged_people_ground_truth_matches_pedestrian_prediction():
     gts = remap_classes([Detection(0, 0, 10, 10, 1, 1)], PERSON_MERGE)  # a sitting person ("people")
     m = evaluate_detections({"im": [Detection(0, 0, 10, 10, 0.9, 0)]}, {"im": gts}, [0])
     assert m.map50 == pytest.approx(1.0)
+
+
+SMALL, LARGE = Detection(0, 0, 10, 10, 1, 0), Detection(100, 100, 300, 300, 1, 0)
+
+
+def test_small_range_ignores_large_ground_truth():
+    p = {"im": [Detection(0, 0, 10, 10, 0.9, 0)]}  # finds the small one, misses the large one
+    g = {"im": [SMALL, LARGE]}
+    assert evaluate_detections(p, g, [0], area_range=SIZE_RANGES["small"]).map50 == pytest.approx(1.0)
+    assert evaluate_detections(p, g, [0], area_range=SIZE_RANGES["large"]).map50 == 0.0
+
+
+def test_prediction_on_ignored_ground_truth_is_not_a_false_positive():
+    p = {"im": [Detection(100, 100, 300, 300, 0.95, 0), Detection(0, 0, 10, 10, 0.5, 0)]}
+    m = evaluate_detections(p, {"im": [SMALL, LARGE]}, [0], area_range=SIZE_RANGES["small"])
+    assert m.map50 == pytest.approx(1.0)
+
+
+def test_unmatched_prediction_outside_range_is_ignored():
+    p = {"im": [Detection(400, 400, 600, 600, 0.95, 0), Detection(0, 0, 10, 10, 0.5, 0)]}
+    assert evaluate_detections(p, {"im": [SMALL]}, [0], area_range=SIZE_RANGES["small"]).map50 == pytest.approx(1.0)
+
+
+def test_unmatched_prediction_inside_range_is_a_false_positive():
+    p = {"im": [Detection(50, 50, 60, 60, 0.95, 0), Detection(0, 0, 10, 10, 0.5, 0)]}
+    m = evaluate_detections(p, {"im": [SMALL]}, [0], area_range=SIZE_RANGES["small"])
+    assert m.map50 == pytest.approx(0.5, abs=0.01)
+
+
+def test_class_without_ground_truth_in_range_is_skipped():
+    m = evaluate_detections({"im": []}, {"im": [LARGE]}, [0], area_range=SIZE_RANGES["small"])
+    assert m.ap50_per_class == {} and m.map50 == 0.0
+
+
+def test_no_range_is_unchanged():
+    p = {"im": [Detection(0, 0, 10, 10, 0.9, 0)]}
+    assert evaluate_detections(p, {"im": [SMALL, LARGE]}, [0]).map50 == pytest.approx(0.5, abs=0.01)
