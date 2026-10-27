@@ -14,7 +14,7 @@ import cv2
 import imageio.v2 as imageio
 
 from dronetrack.data.visdrone import CLASS_NAMES
-from dronetrack.detect.yolo import COCO_TO_VISDRONE, YoloDetector
+from dronetrack.detect.factory import add_detector_args, build_detector
 from dronetrack.io import iter_frames
 from dronetrack.viz.draw import draw_detections
 
@@ -22,8 +22,7 @@ from dronetrack.viz.draw import draw_detections
 def main() -> None:
     parser = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
     parser.add_argument("--source", type=Path, required=True)
-    parser.add_argument("--weights", default="yolo26n.pt")
-    parser.add_argument("--coco", action="store_true", help="model is COCO-pretrained: map its classes to VisDrone")
+    add_detector_args(parser)
     parser.add_argument("--conf", type=float, default=0.25)
     parser.add_argument("--out", type=Path, help="annotated MP4 path")
     parser.add_argument("--gif", type=Path, help="annotated GIF path")
@@ -32,7 +31,7 @@ def main() -> None:
     parser.add_argument("--gif-width", type=int, default=480, help="GIFs are downscaled to stay small enough for a README")
     args = parser.parse_args()
 
-    detector = YoloDetector(args.weights, conf=args.conf, class_map=COCO_TO_VISDRONE if args.coco else None)
+    detector = build_detector(args, conf=args.conf)
     writer, gif_frames, n_dets, start = None, [], 0, time.perf_counter()
     frames = itertools.islice(iter_frames(args.source), args.max_frames)
     for i, frame in enumerate(frames):
