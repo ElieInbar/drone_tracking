@@ -193,3 +193,19 @@ quelqu'un sans rien.
 mais si elle la prend, la trajectoire 1 n'a plus rien d'utilisable. Le hongrois donne la détection 1
 à la trajectoire 0 (IoU 0,43) et la détection 0 à la trajectoire 1 (IoU 0,54) : deux associations au lieu d'une.
 Code : `src/dronetrack/track/matching.py` (avec `scipy.optimize.linear_sum_assignment`).
+
+## ByteTrack et l'association en deux passes
+Méthode de suivi (2022) dont l'idée clé est de ne pas jeter les détections peu sûres. Passe 1 :
+les détections sûres (score ≥ 0,25) sont reliées aux trajectoires. Passe 2 : les détections
+hésitantes (0,1 à 0,25) servent seulement à prolonger les trajectoires restées seules, typiquement
+un objet à moitié caché ; elles ne créent jamais de nouvelle trajectoire.
+*Dans le projet :* `src/dronetrack/track/byte_tracker.py`, réglages identiques à Ultralytics.
+
+## Trajectoire à confirmer / perdue
+Une nouvelle trajectoire doit être revue à l'image suivante pour recevoir un numéro (sinon c'était
+une fausse alerte d'une image). Une trajectoire qui n'est plus vue devient « perdue » et reste en
+mémoire 30 images, au cas où l'objet réapparaît ; après, elle est oubliée.
+
+## Changement d'identité (ID switch)
+Quand un même objet réel change de numéro en cours de vidéo (après une occultation, un croisement,
+un mouvement brusque du drone). C'est l'erreur typique d'un tracker.
