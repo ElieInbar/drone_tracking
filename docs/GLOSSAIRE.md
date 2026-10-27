@@ -169,3 +169,17 @@ La suite des positions d'un même objet au fil des images, avec son numéro. Dan
 VisDrone-MOT, chaque ligne donne l'image, le numéro de l'objet et sa boîte.
 *Dans le projet :* l'objet `Track` = une `Detection` + `track_id`. Code de lecture :
 `parse_mot_annotation` dans `src/dronetrack/data/visdrone.py`.
+
+## Filtre de Kalman
+Méthode pour suivre une grandeur bruitée qui évolue dans le temps. À chaque image : **prédire**
+(« elle avançait de 5 px par image, elle devrait être 5 px plus loin ») puis **corriger** avec la
+mesure du détecteur, en faisant plus confiance à celle des deux qui est la moins incertaine.
+*Dans le projet :* une boîte par trajectoire, état = centre, taille et leurs vitesses (8 nombres),
+hypothèse de vitesse constante. Sans mesure (objet caché sous un arbre), il continue de prédire.
+Code : `src/dronetrack/track/kalman.py`.
+
+## État, incertitude et gain de Kalman
+L'**état** : ce que le filtre croit (position, taille, vitesses). L'**incertitude** (matrice P) :
+à quel point il en est sûr ; elle grandit à chaque prédiction et diminue à chaque mesure.
+Le **gain** K : la part de la mesure qu'on accepte (proche de 1 si la prédiction est très
+incertaine, proche de 0 si le détecteur l'est).
