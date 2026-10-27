@@ -44,7 +44,43 @@ Entraînement : 50 epochs en 43 min sur un GPU L4 (Modal), environ 0,60 USD. La 
 plafonne vers 0,30 dès l'epoch 33 ; pas de sur-apprentissage (pertes de validation toujours en baisse).
 
 ## Expérience 2 — Tuiles pour les petits objets : précision contre vitesse
-*(étape 3)*
+Validation VisDrone-DET (548 images), modèle YOLO26n ré-entraîné, 10 catégories, notre mAP (une
+catégorie par boîte, voir D6). Tuiles de 640 × 640 en pleine résolution, chevauchement 0,2.
+Tailles COCO : petit < 32 × 32 px, moyen < 96 × 96 px, grand au-delà.
+
+| Version | Doublons | mAP@50 | petits | moyens | grands | mAP@50-95 |
+|---|---|---|---|---|---|---|
+| A image entière (référence) | — | 0,273 | 0,169 | 0,414 | **0,580** | 0,153 |
+| B' tuiles seules | NMS IoU | 0,360 | 0,277 | 0,475 | 0,412 | 0,199 |
+| **C tuiles + image entière** | **NMS IoU** | **0,374** | **0,281** | **0,498** | 0,570 | **0,208** |
+| E tuiles + image entière | NMS IoS | 0,370 | 0,280 | 0,487 | 0,541 | 0,206 |
+| F tuiles + image entière | fusion IoU | 0,323 | 0,241 | 0,415 | 0,503 | 0,158 |
+| D tuiles + image entière | fusion IoS (SAHI) | 0,248 | 0,176 | 0,323 | 0,405 | 0,121 |
+
+(B, tuiles seules avec fusion IoS : 0,275 ; même défaut que D.)
+
+Vitesse sur le MacBook Air M1 (seuil 0,25, détection seule, 100 images, 2 mesures) :
+A ≈ 60 images/s (51 à 68), C ≈ 6,4 images/s (6,3 à 6,4), soit **environ 10 fois plus lent** :
+une image VisDrone donne 8 à 12 tuiles, plus le passage sur l'image entière.
+
+Lecture :
+- **Les tuiles améliorent la détection des petits objets de 66 %** (AP@50 0,169 → 0,281) et la mAP
+  globale de 37 % (0,273 → 0,374), **au prix d'une vitesse divisée par 10**.
+- Les tuiles seules (B') perdent sur les **grands** objets (0,580 → 0,412) : un camion de plus de
+  128 px peut n'être vu entier par aucune tuile. Ajouter l'image entière (C) les récupère (0,570).
+- **Surprise : la fusion de boîtes de SAHI (D) est pire que de ne rien faire** (0,248 < 0,273).
+  Le tableau isole la cause : mesurer le recouvrement par IoS au lieu d'IoU ne change presque rien
+  (E ≈ C) ; c'est la **fusion** qui fait chuter la note (F < C, D << E). Dans les parkings et les
+  foules de VisDrone, deux objets voisins de même catégorie se touchent ; la fusion les réunit en une
+  grande boîte qui ne correspond à aucun des deux, et les deux sont comptés comme manqués. La
+  combinaison IoS + fusion est la pire, car l'IoS juge « même objet » des boîtes qui ne se touchent
+  qu'un peu (la petite zone commune est grande par rapport à la plus petite boîte).
+- Réglage retenu par défaut : **C** (tuiles + image entière, suppression des doublons par IoU, sans fusion).
+- Sur la vidéo de l'étape 0, avec C : 48 détections par image (30 sans tuiles, 15 avant ré-entraînement)
+  pour 38,7 objets annotés : les tuiles trouvent plus d'objets mais ajoutent aussi des fausses alertes
+  au seuil 0,25.
+- Les mesures de vitesse varient beaucoup d'une exécution à l'autre (MacBook Air sans ventilateur, qui
+  ralentit en chauffant) : seules les mesures faites l'une après l'autre dans les mêmes conditions sont comparées.
 
 ## Expérience 3 — Notre tracker contre ByteTrack officiel
 *(étape 4)*

@@ -13,18 +13,19 @@ def _parse(argv):
     return parser.parse_args(argv)
 
 
-def test_defaults_are_the_plan_values():
+def test_defaults_are_the_experiment_2_winner():
+    # tiles + whole image, duplicates dropped by IoU (no box merging): best mAP in experiment 2
     a = _parse(["--weights", "w.pt"])
-    assert (a.tiles, a.tile, a.overlap, a.merge_metric, a.merge_threshold) == (False, 640, 0.2, "ios", 0.5)
-    assert not a.no_full and not a.no_merge_boxes
+    assert (a.tiles, a.tile, a.overlap, a.merge_metric, a.merge_threshold) == (False, 640, 0.2, "iou", 0.5)
+    assert not a.no_full and not a.merge_boxes
 
 
 @pytest.mark.slow
 def test_build_tiled_detector_from_flags():
-    det = build_detector(_parse(["--weights", "yolo26n.pt", "--tiles", "--no-full", "--merge-metric", "iou",
-                                 "--no-merge-boxes"]), conf=0.1)
+    det = build_detector(_parse(["--weights", "yolo26n.pt", "--tiles", "--no-full", "--merge-metric", "ios",
+                                 "--merge-boxes"]), conf=0.1)
     assert isinstance(det, TiledDetector) and isinstance(det.base, YoloDetector)
-    assert (det.include_full, det.merge_metric, det.merge_boxes, det.base.conf) == (False, "iou", False, 0.1)
+    assert (det.include_full, det.merge_metric, det.merge_boxes, det.base.conf) == (False, "ios", True, 0.1)
 
 
 @pytest.mark.slow

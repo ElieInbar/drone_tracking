@@ -3,7 +3,7 @@
 Examples:
   # experiment 1, "before": COCO-pretrained model on the 6 shared classes, pedestrian + people merged
   uv run scripts/evaluate_detector.py --weights yolo26n.pt --coco --classes 0 2 3 5 8 9 --merge-person
-  # experiment 2: tiles + whole image, duplicates merged by IoS (default tiling settings)
+  # experiment 2: tiles + whole image, duplicates dropped by IoU (default tiling settings)
   uv run scripts/evaluate_detector.py --weights models/visdrone_y26n.pt --tiles
   # check our mAP against Ultralytics on the fine-tuned model (10 classes)
   uv run scripts/evaluate_detector.py --weights models/visdrone_y26n.pt \

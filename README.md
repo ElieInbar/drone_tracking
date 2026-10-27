@@ -4,10 +4,10 @@ Detect and track vehicles and pedestrians in drone footage: every object gets an
 keeps from frame to frame. Built on the [VisDrone](https://github.com/VisDrone/VisDrone-Dataset)
 dataset, where 60% of the objects are smaller than 32×32 pixels.
 
-| Off-the-shelf YOLO26n (COCO) | YOLO26n fine-tuned on VisDrone |
-|---|---|
-| ![before](docs/media/before_coco.gif) | ![after](docs/media/after_finetuned.gif) |
-| 15 detections per frame: distant people are missed | 30 detections per frame: distant and seated people found |
+| Off-the-shelf YOLO26n (COCO) | Fine-tuned on VisDrone | Fine-tuned + tiling |
+|---|---|---|
+| ![before](docs/media/before_coco.gif) | ![after](docs/media/after_finetuned.gif) | ![tiled](docs/media/tiled.gif) |
+| 15 detections per frame | 30 detections per frame | 48 detections per frame |
 
 ## Results so far
 
@@ -23,6 +23,19 @@ Largest gains on objects COCO rarely sees from above: motorcycles 0.05 → 0.34,
 Fine-tuning: 50 epochs in 43 minutes on one L4 GPU ([Modal](https://modal.com)).
 Full tables and analysis: [docs/RESULTATS.md](docs/RESULTATS.md) (French).
 
+**Experiment 2: tiling for small objects.** Same model, run on 640×640 full-resolution tiles
+(20% overlap) plus the downscaled whole image, duplicates removed with class-wise NMS.
+
+| | Whole image | Tiles + whole image | |
+|---|---|---|---|
+| mAP@50, small objects (< 32×32 px) | 0.169 | **0.281** | +66% |
+| mAP@50, all objects | 0.273 | **0.374** | +37% |
+| Speed (MacBook Air M1) | ~60 img/s | ~6.4 img/s | ~10× slower |
+
+A finding worth noting: **SAHI's default box merging made things worse than no tiling at all**
+(mAP@50 0.248). An ablation isolates the cause: merging, not the IoS overlap metric. In VisDrone's
+dense parking lots and crowds it fuses neighbouring objects into one box. Plain NMS is the default here.
+
 **The mAP is computed by our own code** (COCO method, [det_metrics.py](src/dronetrack/eval/det_metrics.py)),
 unit-tested on hand-checkable cases and cross-checked against Ultralytics: on the same predictions the two
 agree within 0.002.
@@ -32,7 +45,7 @@ agree within 0.002.
 - [x] Step 0: pretrained YOLO on VisDrone videos (baseline)
 - [x] Step 1: VisDrone → YOLO conversion, dataset statistics
 - [x] Step 2: fine-tuning on a cloud GPU, homemade mAP, **experiment 1**
-- [ ] Step 3: homemade tiling for small objects: accuracy vs speed (**experiment 2**)
+- [x] Step 3: homemade tiling for small objects: accuracy vs speed (**experiment 2**)
 - [ ] Step 4: homemade multi-object tracker (Kalman filter + Hungarian matching, ByteTrack-style),
       MOTA / IDF1, compared with official ByteTrack (**experiment 3**)
 - [ ] Step 5: online demo
@@ -52,7 +65,7 @@ video → frames → detect → list[Detection] → track → list[Track] → dr
 | Part | Choice | Why |
 |---|---|---|
 | Detector | Ultralytics YOLO26n, fine-tuned | Rewriting YOLO adds nothing |
-| Small-object tiling | Homemade (SAHI-like) | To understand and measure the trade-off |
+| Small-object tiling | Homemade (SAHI-like), with NMS or SAHI-style merging | To understand and measure the trade-off |
 | Tracker | Homemade, ByteTrack-style | Core algorithmic part |
 | Metrics | Homemade mAP, MOTA, IDF1 | Each checked against the official tool |
 
@@ -69,6 +82,7 @@ uv run pytest                                              # unit tests
 uv run scripts/download_visdrone.py det-val                # 82 MB
 uv run scripts/evaluate_detector.py --weights yolo26n.pt --coco --classes 0 2 3 5 8 9 --merge-person
 uv run scripts/run_detect.py --source path/to/video.mp4 --weights yolo26n.pt --coco --gif out.gif
+uv run scripts/run_detect.py --source path/to/video.mp4 --weights models/visdrone_y26n.pt --tiles --gif out.gif
 ```
 
 Fine-tuning on Modal: `modal run --detach scripts/modal_train.py` (see the script's header).

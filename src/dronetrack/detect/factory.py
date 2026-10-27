@@ -15,9 +15,10 @@ def add_detector_args(parser: argparse.ArgumentParser) -> None:
     tiling.add_argument("--tile", type=int, default=640)
     tiling.add_argument("--overlap", type=float, default=0.2)
     tiling.add_argument("--no-full", action="store_true", help="tiles only, skip the whole-image pass")
-    tiling.add_argument("--merge-metric", choices=["iou", "ios"], default="ios")
+    # defaults = experiment 2 winner (docs/DECISIONS.md D7): drop duplicates by IoU, no box merging
+    tiling.add_argument("--merge-metric", choices=["iou", "ios"], default="iou")
     tiling.add_argument("--merge-threshold", type=float, default=0.5)
-    tiling.add_argument("--no-merge-boxes", action="store_true", help="drop duplicates instead of merging them")
+    tiling.add_argument("--merge-boxes", action="store_true", help="merge duplicates into one box (SAHI-style NMM)")
 
 
 def build_detector(args: argparse.Namespace, conf: float) -> YoloDetector | TiledDetector:
@@ -31,5 +32,5 @@ def build_detector(args: argparse.Namespace, conf: float) -> YoloDetector | Tile
         include_full=not args.no_full,
         merge_threshold=args.merge_threshold,
         merge_metric=args.merge_metric,
-        merge_boxes=not args.no_merge_boxes,
+        merge_boxes=args.merge_boxes,
     )

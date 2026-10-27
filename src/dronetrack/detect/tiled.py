@@ -12,7 +12,8 @@ class TiledDetector:
 
     `base` is any detector with `detect_batch(images) -> list[list[Detection]]`.
     With include_full, the whole (downscaled) image is also searched: large objects that no tile
-    sees entirely are found there, and merging rebuilds them from their pieces.
+    sees entirely are found there. Defaults are the best setting of experiment 2 (docs/DECISIONS.md D7):
+    duplicates are dropped by IoU; merging boxes (SAHI-style) fuses neighbouring objects in dense scenes.
     """
 
     def __init__(
@@ -22,8 +23,8 @@ class TiledDetector:
         overlap: float = 0.2,
         include_full: bool = True,
         merge_threshold: float = 0.5,
-        merge_metric: str = "ios",
-        merge_boxes: bool = True,
+        merge_metric: str = "iou",
+        merge_boxes: bool = False,
     ):
         self.base = base
         self.tile = tile

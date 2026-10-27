@@ -41,3 +41,8 @@ def test_full_image_pass_is_added_and_duplicates_merged():
     dets = TiledDetector(fake, include_full=True).detect(np.zeros((640, 640, 3), np.uint8))
     assert len(fake.sizes) == 2  # one tile + the full image
     assert len(dets) == 1  # both see the same car at the same place
+
+
+def test_tiled_detector_defaults_are_the_experiment_2_winner():
+    det = TiledDetector(FakeDetector())
+    assert (det.merge_metric, det.merge_boxes, det.include_full) == ("iou", False, True)

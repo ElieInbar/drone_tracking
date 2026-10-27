@@ -57,3 +57,15 @@ de prétraitement (interpolation, letterbox).
 système réel (et notre tracker) attribue une seule catégorie à chaque objet. Nos chiffres sont donc un
 peu plus bas que ceux qu'affiche Ultralytics, mais ils mesurent ce que le système fait vraiment.
 La première ligne de l'expérience 2 (image entière, 10 catégories) est mAP@50 = 0,273.
+
+## D7 — Tuiles 640 px, chevauchement 0,2, + image entière, doublons supprimés par IoU (sans fusion)
+Le plan prévoyait la fusion de boîtes par IoS, la méthode par défaut de SAHI. L'expérience 2 l'a
+réfutée sur VisDrone : mAP@50 0,248, sous la référence sans tuiles (0,273), alors que la suppression
+classique par IoU donne 0,374. Les variantes E et F isolent la cause : c'est la fusion, pas l'IoS.
+Dans des scènes denses, la fusion réunit des objets voisins de même catégorie en une seule boîte.
+Le passage sur l'image entière est gardé : sans lui, les grands objets chutent (0,580 → 0,412),
+car un objet de plus de 128 px peut être coupé dans toutes les tuiles.
+Coût : environ 10 fois plus lent (≈ 60 → 6,4 images/s sur le Mac M1). À utiliser quand les petits
+objets comptent plus que la vitesse ; pour du temps réel embarqué, l'image entière reste l'option rapide.
+Hors périmètre, à tester si besoin (plan 2b) : ré-entraîner sur des tuiles, car le modèle a appris
+sur des images réduites et voit les objets plus gros dans une tuile qu'à l'entraînement.
