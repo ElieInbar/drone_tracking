@@ -1,6 +1,6 @@
 """Thin wrapper turning Ultralytics YOLO outputs into our Detection objects."""
 
-from collections.abc import Mapping
+from collections.abc import Mapping, Sequence
 
 import numpy as np
 import torch
@@ -53,8 +53,12 @@ class YoloDetector:
         self.device = device or default_device()
 
     def detect(self, image: np.ndarray) -> list[Detection]:
-        result = self.model.predict(image, conf=self.conf, imgsz=self.imgsz, device=self.device, verbose=False)[0]
-        boxes = result.boxes
-        return to_detections(
-            boxes.xyxy.cpu().numpy(), boxes.conf.cpu().numpy(), boxes.cls.cpu().numpy(), self.class_map
-        )
+        return self.detect_batch([image])[0]
+
+    def detect_batch(self, images: Sequence[np.ndarray]) -> list[list[Detection]]:
+        """One model call for several images (faster on a GPU than one call per image)."""
+        results = self.model.predict(list(images), conf=self.conf, imgsz=self.imgsz, device=self.device, verbose=False)
+        return [
+            to_detections(r.boxes.xyxy.cpu().numpy(), r.boxes.conf.cpu().numpy(), r.boxes.cls.cpu().numpy(), self.class_map)
+            for r in results
+        ]

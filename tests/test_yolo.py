@@ -27,3 +27,11 @@ def test_to_detections_empty():
 @pytest.mark.slow
 def test_yolo_detector_runs_on_blank_image():
     assert YoloDetector("yolo26n.pt").detect(np.zeros((640, 640, 3), np.uint8)) == []
+
+
+@pytest.mark.slow
+def test_yolo_detect_batch_matches_detect():
+    det = YoloDetector("yolo26n.pt")
+    img = np.zeros((480, 640, 3), np.uint8)
+    img[100:300, 200:400] = 255
+    assert det.detect_batch([img, img]) == [det.detect(img), det.detect(img)]
