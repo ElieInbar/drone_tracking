@@ -10,13 +10,12 @@ import itertools
 import time
 from pathlib import Path
 
-import cv2
-import imageio.v2 as imageio
 
 from dronetrack.data.visdrone import CLASS_NAMES
 from dronetrack.detect.factory import add_detector_args, build_detector
 from dronetrack.io import iter_frames
 from dronetrack.viz.draw import draw_detections
+from dronetrack.viz.video import AnnotatedVideo
 
 
 def main() -> None:
@@ -32,29 +31,15 @@ def main() -> None:
     args = parser.parse_args()
 
     detector = build_detector(args, conf=args.conf)
-    writer, gif_frames, n_dets, start = None, [], 0, time.perf_counter()
-    frames = itertools.islice(iter_frames(args.source), args.max_frames)
-    for i, frame in enumerate(frames):
+    video = AnnotatedVideo(args.out, args.gif, args.fps, args.gif_width)
+    n_frames = n_dets = 0
+    start = time.perf_counter()
+    for frame in itertools.islice(iter_frames(args.source), args.max_frames):
         dets = detector.detect(frame)
-        n_dets += len(dets)
-        drawn = draw_detections(frame, dets, CLASS_NAMES)
-        if args.out:
-            if writer is None:
-                args.out.parent.mkdir(parents=True, exist_ok=True)
-                h, w = drawn.shape[:2]
-                writer = cv2.VideoWriter(str(args.out), cv2.VideoWriter_fourcc(*"mp4v"), args.fps, (w, h))
-            writer.write(drawn)
-        if args.gif:
-            h, w = drawn.shape[:2]
-            small = cv2.resize(drawn, (args.gif_width, round(h * args.gif_width / w)))
-            gif_frames.append(cv2.cvtColor(small, cv2.COLOR_BGR2RGB))
-    n_frames = i + 1
+        n_frames, n_dets = n_frames + 1, n_dets + len(dets)
+        video.add(draw_detections(frame, dets, CLASS_NAMES))
     elapsed = time.perf_counter() - start
-    if writer is not None:
-        writer.release()
-    if args.gif:
-        args.gif.parent.mkdir(parents=True, exist_ok=True)
-        imageio.mimsave(args.gif, gif_frames, duration=1000 / args.fps, loop=0)
+    video.close()
     print(f"{n_frames} frames, {n_dets / n_frames:.1f} detections/frame, {n_frames / elapsed:.1f} frames/s")
 
 
