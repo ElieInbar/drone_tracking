@@ -3,14 +3,14 @@ name = "dronetrack"
 version = "0.1.0"
 description = "Detection and multi-object tracking of small targets in drone footage (VisDrone)"
 readme = "README.md"
-requires-python = ">=3.11,<3.12"
+requires-python = ">=3.10,<3.12"  # 3.10: Hugging Face ZeroGPU Spaces
 dependencies = [
     "ultralytics",
     "numpy",
     "opencv-python",
     "imageio",
     "gdown",
-    "scipy>=1.17.1",
+    "scipy>=1.13",
     "lap>=0.5.12",
     "imageio-ffmpeg>=0.6.0",
 ]

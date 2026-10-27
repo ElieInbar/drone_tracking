@@ -4,8 +4,9 @@ emoji: 🛰️
 colorFrom: blue
 colorTo: indigo
 sdk: gradio
+sdk_version: 5.50.0
 app_file: app.py
-python_version: "3.11"
+python_version: "3.10"
 license: agpl-3.0
 short_description: Detect and track vehicles and pedestrians in drone video
 ---

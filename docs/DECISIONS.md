@@ -82,11 +82,15 @@ Vérification des métriques : TrackEval, lancé sur nos sorties ; il utilise de
 (`np.int`, `np.float`) qu'on recrée seulement pendant la vérification.
 Le détecteur pour le suivi reste l'image entière : les tuiles dégradent le suivi au seuil 0,1 (voir RESULTATS).
 
-## D9 — Démo en ligne : Hugging Face Space gratuit (CPU), 300 images au plus, image entière
-Matériel gratuit « CPU basic » (2 cœurs, pas de GPU) plutôt qu'un GPU payant : YOLO26n est assez petit
-pour l'inférence sur CPU (≈ 14 images/s sur 2 cœurs du M1). Limite de 300 images, réduites à 1280 px de
-large, pour qu'un visiteur attende environ une minute. Réglages de l'expérience 3 (image entière, seuil
-0,1, notre tracker) ; pas de tuiles, 10 fois plus lentes et moins bonnes pour le suivi (D8).
-Sortie en H.264 (seul format que lisent tous les navigateurs). Le Space ne contient que la page
-(`space/`) : il installe `dronetrack` depuis GitHub au tag `v1.0` et télécharge les poids depuis la
-release `v1.0`, pour qu'il n'existe qu'une version du code et des poids.
+## D9 — Démo en ligne : Hugging Face Space ZeroGPU, 300 images au plus, image entière
+Prévu sur le matériel gratuit « CPU basic » ; mais depuis 2026 un compte gratuit n'a droit, pour un
+Space Gradio, qu'à ZeroGPU (un GPU prêté seulement pendant l'appel d'une fonction marquée `@spaces.GPU`,
+avec un quota de temps par visiteur). Conséquences : la fonction de suivi est marquée `@spaces.GPU`
+(sans effet en local, où elle tourne sur CPU) ; ZeroGPU impose Python 3.10, donc le paquet accepte
+désormais Python 3.10 (aucun code à changer, les 121 tests passent sous 3.10) ; torch est celui
+préinstallé par ZeroGPU, et la version de Gradio est fixée par `sdk_version` dans la fiche du Space.
+Limite de 300 images, réduites à 1280 px de large, pour que chaque visiteur consomme peu de quota.
+Réglages de l'expérience 3 (image entière, seuil 0,1, notre tracker) ; pas de tuiles, 10 fois plus
+lentes et moins bonnes pour le suivi (D8). Sortie en H.264 (seul format que lisent tous les navigateurs).
+Le Space ne contient que la page (`space/`) : il installe `dronetrack` depuis GitHub au tag `v1.1`
+et télécharge les poids depuis la release `v1.0`, pour qu'il n'existe qu'une version du code et des poids.

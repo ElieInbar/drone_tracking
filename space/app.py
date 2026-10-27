@@ -10,6 +10,7 @@ import urllib.request
 from pathlib import Path
 
 import gradio as gr
+import torch
 
 from dronetrack.demo import MAX_FRAMES, track_video
 from dronetrack.detect.yolo import YoloDetector
@@ -26,7 +27,7 @@ INTRO = f"""
 # Drone Tracking — detect and track small objects in drone footage
 Upload a drone video (or pick the example below): every vehicle and pedestrian gets a box and a number it keeps
 from frame to frame. YOLO26n fine-tuned on VisDrone + a ByteTrack-style tracker written from scratch.
-Runs on a free CPU, so only the first {MAX_FRAMES} frames are processed (about a minute). Code and results: [{REPO_URL}]({REPO_URL})
+Only the first {MAX_FRAMES} frames are processed, to keep the free GPU quota short. Code and results: [{REPO_URL}]({REPO_URL})
 """
 
 RESULTS = """
@@ -37,6 +38,14 @@ RESULTS = """
 | Tracking, MOTA (Ultralytics ByteTrack → ours, same boxes) | 0.177 → **0.193** |
 | Identity switches vs Ultralytics ByteTrack | **−23%** |
 """
+
+try:  # Hugging Face ZeroGPU lends a GPU only while a function marked @spaces.GPU runs
+    import spaces
+
+    on_gpu = spaces.GPU(duration=120)
+except ImportError:  # running locally
+    def on_gpu(fn):
+        return fn
 
 _detector = None
 
@@ -57,10 +66,12 @@ def ensure_weights(path: Path = WEIGHTS_PATH, url: str = WEIGHTS_URL) -> Path:
 def _get_detector() -> YoloDetector:
     global _detector
     if _detector is None:
-        _detector = YoloDetector(str(ensure_weights()), conf=TRACK_CONF, device="cpu")
+        device = "cuda" if torch.cuda.is_available() else "cpu"
+        _detector = YoloDetector(str(ensure_weights()), conf=TRACK_CONF, device=device)
     return _detector
 
 
+@on_gpu
 def run(video_path: str | None) -> tuple[str, str]:
     """Annotated MP4 path and a one-line summary, for the page."""
     if not video_path:
