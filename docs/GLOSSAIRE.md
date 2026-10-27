@@ -124,3 +124,14 @@ Pendant l'entraînement, Ultralytics colle 4 images en une pour créer de la var
 les 10 dernières epochs. *Dans le projet :* la perte d'entraînement chute à l'epoch 40 quand la
 mosaïque s'arrête, sans que la mAP de validation bouge : les images sont plus faciles, le modèle
 n'est pas meilleur.
+
+## Tuile (tile)
+Un morceau carré de l'image (640 × 640 px ici), pris en pleine résolution, que l'on donne au
+détecteur à la place de l'image entière réduite. Les petits objets gardent ainsi tous leurs pixels.
+*Exemple :* une image VisDrone de 1920 × 1080 donne 8 tuiles ; une de 2000 × 1500 en donne 12.
+Code : `src/dronetrack/detect/tiling.py`.
+
+## Chevauchement (overlap) et pas (stride)
+Les tuiles voisines se recouvrent (20 % ici) pour qu'un objet coupé par le bord d'une tuile
+apparaisse entier dans la tuile d'à côté. Le pas est la distance entre deux tuiles :
+640 × (1 − 0,2) = 512 px, donc 128 px partagés. Tout objet de moins de 128 px est vu entier au moins une fois.
