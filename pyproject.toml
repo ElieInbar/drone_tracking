@@ -12,6 +12,7 @@ dependencies = [
     "gdown",
     "scipy>=1.17.1",
     "lap>=0.5.12",
+    "imageio-ffmpeg>=0.6.0",
 ]
 
 [dependency-groups]

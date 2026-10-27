@@ -224,3 +224,16 @@ chaque objet réel à au plus un numéro prédit (celui avec lequel il partage l
 IDF1 = 2 × (images où l'objet a ce numéro) ÷ (objets réels + prédictions). Contrairement à MOTA, un
 objet qui change de numéro en milieu de vidéo perd la moitié de sa note.
 Code : `src/dronetrack/eval/mot_metrics.py`.
+
+## Codec, H.264
+Une vidéo brute est énorme (1280 × 720 pixels × 3 couleurs × 30 images/s ≈ 80 Mo par seconde). Un
+codec la compresse, en ne stockant souvent que ce qui change d'une image à l'autre. H.264 est le
+codec que tous les navigateurs savent lire ; il exige des largeurs et hauteurs paires. Le `mp4v`
+d'OpenCV écrit bien un fichier .mp4, mais les navigateurs ne l'affichent pas : la démo écrit donc en H.264.
+Code : `src/dronetrack/demo.py`.
+
+## CPU, GPU et inférence
+L'inférence, c'est utiliser un modèle déjà entraîné pour prédire (ici : trouver les boîtes). Un GPU
+fait des milliers de petits calculs en parallèle, idéal pour un réseau de neurones ; un CPU en fait
+peu à la fois. L'entraînement a demandé un GPU (Modal), mais YOLO26n est assez petit pour l'inférence
+sur CPU : environ 14 images/s sur 2 cœurs du M1, ce qui suffit pour la démo en ligne gratuite (sans GPU).
